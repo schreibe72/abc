@@ -1,0 +1,4 @@
+/bin/*.zip
+/bin/linux
+/bin/windows
+/bin/darwin
