@@ -45,11 +45,8 @@ type bundle struct {
 }
 
 func (a *StorageAttributes) NewStorageClient() error {
-	switch {
-	case a.Account == "":
-		return errors.New("no Storage Account provided")
-	case a.Key == "":
-		return errors.New("no Azure Storage Access Key provided")
+	if err := validateAccountCredentials(a.Account, a.Key); err != nil {
+		return err
 	}
 	client, err := as.NewBasicClient(a.Account, a.Key)
 	if err != nil {
@@ -57,5 +54,25 @@ func (a *StorageAttributes) NewStorageClient() error {
 	}
 	a.storageClient = client
 	a.blobService = a.storageClient.GetBlobService()
+	return nil
+}
+
+func validateBlobName(container string, name string) error {
+	switch {
+	case container == "":
+		return errors.New("no container provided")
+	case name == "":
+		return errors.New("no blob name provided")
+	}
+	return nil
+}
+
+func validateAccountCredentials(account string, key string) error {
+	switch {
+	case account == "":
+		return errors.New("no Storage Account provided")
+	case key == "":
+		return errors.New("no Azure Storage Access Key provided")
+	}
 	return nil
 }

@@ -7,6 +7,7 @@ import (
 	"log"
 	"mime"
 	"os"
+	"os/user"
 	"path/filepath"
 	"strings"
 
@@ -52,7 +53,7 @@ func upload(a Arguments) {
 			loggerPtr.Printf("Blobname: %s\n", a.blobname)
 			loggerPtr.Printf("Big: %t\n", a.big)
 		}
-		err := s.SaveBigBlob(os.Stdin, a.container, a.blobname, a.big, a.contentSetting)
+		err := s.SaveBlob(os.Stdin, a.container, a.blobname, a.big, a.contentSetting)
 		check(err)
 	} else {
 		f, err := os.Open(a.filename)
@@ -75,7 +76,7 @@ func upload(a Arguments) {
 			loggerPtr.Printf("Blobname: %s\n", a.blobname)
 			loggerPtr.Printf("Big: %t\n", a.big)
 		}
-		err = s.SaveBigBlob(f, a.container, a.blobname, a.big, a.contentSetting)
+		err = s.SaveBlob(f, a.container, a.blobname, a.big, a.contentSetting)
 		check(err)
 	}
 }
@@ -151,17 +152,22 @@ func printCmds() {
 }
 func parseFlags(cmd string, args []string) (Arguments, error) {
 	var a Arguments
-	home := os.Getenv("HOME")
+	u, err := user.Current()
+	if err != nil {
+		return a, err
+	}
+	home := u.HomeDir
+	//home := os.Getenv("HOME")
 	a.configPath = fmt.Sprintf("%s/.azure/abc-config.json", home)
 	subflags := flag.NewFlagSet("subcommand", flag.ExitOnError)
 
 	subflags.BoolVar(&a.verbose, "v", false, "Verbose info")
-	subflags.StringVar(&a.Key, "k", "", "a Azure Key")
-	subflags.StringVar(&a.Account, "a", "", "a Azure Storage Account")
+	subflags.StringVar(&a.Key, "k", "", "a Azure Key (if stored - mandatory)")
+	subflags.StringVar(&a.Account, "a", "", "a Azure Storage Account (if stored - mandatory)")
 
 	switch cmd {
 	case "upload":
-		subflags.StringVar(&a.blobname, "n", "", "The Blob File Name")
+		subflags.StringVar(&a.blobname, "n", "", "The Blob File Name (required for pipe)")
 		subflags.IntVar(&a.workercount, "worker", 10, "download Worker Count")
 		subflags.BoolVar(&a.pipe, "pipe", false, "incoming Pipe")
 		subflags.BoolVar(&a.big, "big", false, "spilt file which are bigger than 195GB in part Blockblobs")
@@ -169,24 +175,24 @@ func parseFlags(cmd string, args []string) (Arguments, error) {
 		subflags.StringVar(&a.contentSetting.CacheControl, "cacheControl", "", "CacheControl for the uploaded file")
 		subflags.StringVar(&a.contentSetting.ContentLanguage, "contentLanguage", "", "ContentLanguage for the uploaded file")
 		subflags.StringVar(&a.contentSetting.ContentEncoding, "contentEncoding", "", "ContentEncoding for the uploaded file")
-		subflags.StringVar(&a.filename, "f", "", "Filename to upload")
-		subflags.StringVar(&a.container, "c", "", "a Azure Container")
+		subflags.StringVar(&a.filename, "f", "", "Filename to upload (required if no pipe)")
+		subflags.StringVar(&a.container, "c", "", "a Azure Container (required)")
 	case "download":
-		subflags.StringVar(&a.blobname, "n", "", "The Blob File Name")
+		subflags.StringVar(&a.blobname, "n", "", "The Blob File Name (required)")
 		subflags.IntVar(&a.workercount, "worker", 10, "download Worker Count")
 		subflags.BoolVar(&a.pipe, "pipe", false, "outgoing Pipe")
 		subflags.StringVar(&a.filename, "f", "", "Filename to download")
-		subflags.StringVar(&a.container, "c", "", "a Azure Container")
+		subflags.StringVar(&a.container, "c", "", "a Azure Container (required)")
 	case "container_create", "container_delete":
-		subflags.StringVar(&a.container, "c", "", "a Azure Container")
+		subflags.StringVar(&a.container, "c", "", "a Azure Container (required)")
 	case "container_show":
-		subflags.StringVar(&a.container, "c", "", "a Azure Container")
+		subflags.StringVar(&a.container, "c", "", "a Azure Container (required)")
 		subflags.StringVar(&a.blobPrefix, "bp", "", "a Azure Blob Prefix")
 	case "container_list":
 		subflags.StringVar(&a.containerPrefix, "cp", "", "a Azure Container Prefix")
 	case "blob_delete":
-		subflags.StringVar(&a.container, "c", "", "a Azure Container")
-		subflags.StringVar(&a.blobname, "n", "", "The Blob File Name")
+		subflags.StringVar(&a.container, "c", "", "a Azure Container (required)")
+		subflags.StringVar(&a.blobname, "n", "", "The Blob File Name (required)")
 	case "save_credentials":
 		// no special Flags needed
 	default:
@@ -194,6 +200,11 @@ func parseFlags(cmd string, args []string) (Arguments, error) {
 	}
 	a.load()
 	subflags.Parse(args)
+	if len(subflags.Args()) > 0 || len(args) == 0 {
+		subflags.PrintDefaults()
+		os.Exit(2)
+		//return a, errors.New("No valid Flags")
+	}
 	return a, nil
 }
 

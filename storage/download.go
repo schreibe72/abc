@@ -2,7 +2,6 @@ package storage
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -10,11 +9,8 @@ import (
 
 func (a *StorageAttributes) loadBlob(w io.Writer, container string, name string) error {
 
-	switch {
-	case container == "":
-		return errors.New("no container provided")
-	case name == "":
-		return errors.New("no blob name provided")
+	if err := validateBlobName(container, name); err != nil {
+		return err
 	}
 
 	r, err := a.blobService.GetBlobRange(container, name, "0-", map[string]string{})
@@ -29,12 +25,11 @@ func (a *StorageAttributes) loadBlob(w io.Writer, container string, name string)
 
 // LoadBlob downloads the blob. It desides wether this is a bundle with spilt files or not.
 func (a *StorageAttributes) LoadBlob(w io.Writer, container string, name string) error {
-	switch {
-	case container == "":
-		return errors.New("no container provided")
-	case name == "":
-		return errors.New("no blob name provided")
+
+	if err := validateBlobName(container, name); err != nil {
+		return err
 	}
+
 	bundleFileName := fmt.Sprintf("%s-bundle.json", name)
 	blobExist, err := a.blobService.BlobExists(container, bundleFileName)
 	if err != nil {
@@ -53,12 +48,11 @@ func (a *StorageAttributes) LoadBlob(w io.Writer, container string, name string)
 }
 
 func (a *StorageAttributes) loadBlobBundle(w io.Writer, container string, name string) error {
-	switch {
-	case container == "":
-		return errors.New("no container provided")
-	case name == "":
-		return errors.New("no blob name provided")
+
+	if err := validateBlobName(container, name); err != nil {
+		return err
 	}
+
 	var data []byte
 	var b bundle
 	r, err := a.blobService.GetBlobRange(container, name, "0-", map[string]string{})

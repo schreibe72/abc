@@ -13,12 +13,11 @@ This Tool can upload files to a azure storage account and sets the content type 
 You can provided the access key to your azure storage account per command line or you can store it in an config file.
 
 ```
-abc save credentials -h
-Usage of subcommand:
+abc save credentials
   -a string
-    	a Azure Storage Account
+    	a Azure Storage Account (if stored - mandatory)
   -k string
-    	a Azure Key
+    	a Azure Key (if stored - mandatory)
   -v	Verbose info
 ```
 **Example:**
@@ -34,11 +33,11 @@ If the data comes per pipe and you know that it is bigger than 195GB you should 
 abc upload -h
 Usage of subcommand:
   -a string
-    	a Azure Storage Account
+    	a Azure Storage Account (if stored - mandatory)
   -big
     	spilt file which are bigger than 195GB in part Blockblobs
   -c string
-    	a Azure Container
+    	a Azure Container (required)
   -cacheControl string
     	CacheControl for the uploaded file
   -contentEncoding string
@@ -48,11 +47,11 @@ Usage of subcommand:
   -contentType string
     	Contenttype for the uploaded file
   -f string
-    	Filename to upload
+    	Filename to upload (required if no pipe)
   -k string
-    	a Azure Key
+    	a Azure Key (if stored - mandatory)
   -n string
-    	The Blob File Name
+    	The Blob File Name (required for pipe)
   -pipe
     	incoming Pipe
   -v	Verbose info
@@ -78,15 +77,15 @@ this subcommand let you download a blob to a file or put the output to stdout. I
 abc download -h
 Usage of subcommand:
   -a string
-    	a Azure Storage Account
+    	a Azure Storage Account (if stored - mandatory)
   -c string
-    	a Azure Container
+    	a Azure Container (required)
   -f string
     	Filename to download
   -k string
-    	a Azure Key
+    	a Azure Key (if stored - mandatory)
   -n string
-    	The Blob File Name
+    	The Blob File Name (required)
   -pipe
     	outgoing Pipe
   -v	Verbose info

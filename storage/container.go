@@ -76,12 +76,11 @@ func (a *StorageAttributes) ShowContainer(container string, prefix string) ([]st
 
 //DeleteBlob deletes the given blob
 func (a *StorageAttributes) DeleteBlob(container string, name string) error {
-	switch {
-	case container == "":
-		return errors.New("no container provided")
-	case name == "":
-		return errors.New("no blob name provided")
+
+	if err := validateBlobName(container, name); err != nil {
+		return err
 	}
+
 	b, err := a.blobService.DeleteBlobIfExists(container, name, map[string]string{})
 	if err != nil {
 		return err

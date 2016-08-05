@@ -4,7 +4,6 @@ import (
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"sync"
@@ -15,11 +14,8 @@ import (
 
 func (a *StorageAttributes) saveBlob(reader io.Reader, container string, name string, contentSetting ContentSetting) (bundleItem, error) {
 
-	switch {
-	case container == "":
-		return bundleItem{}, errors.New("no container provided")
-	case name == "":
-		return bundleItem{}, errors.New("no blob name provided")
+	if err := validateBlobName(container, name); err != nil {
+		return bundleItem{}, err
 	}
 
 	blocklist := make([]as.Block, 0, 500)
@@ -91,13 +87,10 @@ func (a *StorageAttributes) saveBlob(reader io.Reader, container string, name st
 	return item, err
 }
 
-func (a *StorageAttributes) SaveBigBlob(reader io.Reader, container string, name string, big bool, contentSetting ContentSetting) error {
+func (a *StorageAttributes) SaveBlob(reader io.Reader, container string, name string, big bool, contentSetting ContentSetting) error {
 
-	switch {
-	case container == "":
-		return errors.New("no container provided")
-	case name == "":
-		return errors.New("no blob name provided")
+	if err := validateBlobName(container, name); err != nil {
+		return err
 	}
 
 	var item bundleItem
@@ -133,11 +126,8 @@ func (a *StorageAttributes) SaveBigBlob(reader io.Reader, container string, name
 
 func (a *StorageAttributes) storeBundleFile(container string, name string, b bundle) error {
 
-	switch {
-	case container == "":
-		return errors.New("no container provided")
-	case name == "":
-		return errors.New("no blob name provided")
+	if err := validateBlobName(container, name); err != nil {
+		return err
 	}
 
 	name = fmt.Sprintf("%s-bundle.json", name)
