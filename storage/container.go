@@ -6,6 +6,7 @@ import (
 	as "github.com/schreibe72/azure-sdk-for-go/storage"
 )
 
+//ListContainer shows all container in storage account
 func (a *StorageAttributes) ListContainer(prefix string) ([]string, error) {
 	var clp as.ListContainersParameters
 	var containerNames []string
@@ -22,6 +23,7 @@ func (a *StorageAttributes) ListContainer(prefix string) ([]string, error) {
 	return containerNames, nil
 }
 
+// CreateContainer creates Container
 func (a *StorageAttributes) CreateContainer(container string) error {
 	if container == "" {
 		return errors.New("no container provided")
@@ -36,6 +38,7 @@ func (a *StorageAttributes) CreateContainer(container string) error {
 	return nil
 }
 
+//DeleteContainer deletes the given container
 func (a *StorageAttributes) DeleteContainer(container string) error {
 	if container == "" {
 		return errors.New("no container provided")
@@ -51,12 +54,13 @@ func (a *StorageAttributes) DeleteContainer(container string) error {
 	return nil
 }
 
+//ShowContainer shows all blobs in Container
 func (a *StorageAttributes) ShowContainer(container string, prefix string) ([]string, error) {
 	if container == "" {
 		return []string{}, errors.New("no container provided")
 	}
 	var blp as.ListBlobsParameters
-	blobNames := make([]string, 0)
+	var blobNames []string
 	if prefix != "" {
 		blp.Prefix = prefix
 	}
@@ -70,13 +74,13 @@ func (a *StorageAttributes) ShowContainer(container string, prefix string) ([]st
 	return blobNames, nil
 }
 
+//DeleteBlob deletes the given blob
 func (a *StorageAttributes) DeleteBlob(container string, name string) error {
-	switch {
-	case container == "":
-		return errors.New("no container provided")
-	case name == "":
-		return errors.New("no blob name provided")
+
+	if err := validateBlobName(container, name); err != nil {
+		return err
 	}
+
 	b, err := a.blobService.DeleteBlobIfExists(container, name, map[string]string{})
 	if err != nil {
 		return err

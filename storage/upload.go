@@ -4,7 +4,6 @@ import (
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"sync"
@@ -13,13 +12,10 @@ import (
 	as "github.com/schreibe72/azure-sdk-for-go/storage"
 )
 
-func (a *StorageAttributes) SaveBlob(reader io.Reader, container string, name string, contentSetting ContentSetting) (bundleItem, error) {
+func (a *StorageAttributes) saveBlob(reader io.Reader, container string, name string, contentSetting ContentSetting) (bundleItem, error) {
 
-	switch {
-	case container == "":
-		return bundleItem{}, errors.New("no container provided")
-	case name == "":
-		return bundleItem{}, errors.New("no blob name provided")
+	if err := validateBlobName(container, name); err != nil {
+		return bundleItem{}, err
 	}
 
 	blocklist := make([]as.Block, 0, 500)
@@ -68,7 +64,7 @@ func (a *StorageAttributes) SaveBlob(reader io.Reader, container string, name st
 			Status: status}
 		blocklist = append(blocklist, block)
 		c <- u
-		if item.EOF || len(blocklist) >= maxblobbockcount {
+		if item.EOF || len(blocklist) >= MaxBlobBockCount {
 			break
 		}
 	}
@@ -91,13 +87,10 @@ func (a *StorageAttributes) SaveBlob(reader io.Reader, container string, name st
 	return item, err
 }
 
-func (a *StorageAttributes) SaveBigBlob(reader io.Reader, container string, name string, big bool, contentSetting ContentSetting) error {
+func (a *StorageAttributes) SaveBlob(reader io.Reader, container string, name string, big bool, contentSetting ContentSetting) error {
 
-	switch {
-	case container == "":
-		return errors.New("no container provided")
-	case name == "":
-		return errors.New("no blob name provided")
+	if err := validateBlobName(container, name); err != nil {
+		return err
 	}
 
 	var item bundleItem
@@ -115,7 +108,7 @@ func (a *StorageAttributes) SaveBigBlob(reader io.Reader, container string, name
 		if a.Verbose {
 			a.Logger.Printf("Save Blob in new BlobFile: %s\n", blobname)
 		}
-		item, err = a.SaveBlob(reader, container, blobname, contentSetting)
+		item, err = a.saveBlob(reader, container, blobname, contentSetting)
 		if err != nil {
 			return err
 		}
@@ -133,11 +126,8 @@ func (a *StorageAttributes) SaveBigBlob(reader io.Reader, container string, name
 
 func (a *StorageAttributes) storeBundleFile(container string, name string, b bundle) error {
 
-	switch {
-	case container == "":
-		return errors.New("no container provided")
-	case name == "":
-		return errors.New("no blob name provided")
+	if err := validateBlobName(container, name); err != nil {
+		return err
 	}
 
 	name = fmt.Sprintf("%s-bundle.json", name)

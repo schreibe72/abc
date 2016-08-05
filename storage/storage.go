@@ -3,13 +3,15 @@ package storage
 import (
 	"errors"
 	"log"
-	"os"
 
 	as "github.com/schreibe72/azure-sdk-for-go/storage"
 )
 
+//MaxBlobBlockSize
+//
 const (
-	maxblobbockcount = 50000
+	MaxBlobBockCount = 50000
+	MaxBlobBlockSize = as.MaxBlobBlockSize
 )
 
 type ContentSetting as.ContentSetting
@@ -43,11 +45,8 @@ type bundle struct {
 }
 
 func (a *StorageAttributes) NewStorageClient() error {
-	switch {
-	case a.Account == "":
-		return errors.New("no Storage Account provided")
-	case a.Key == "":
-		return errors.New("no Azure Storage Access Key provided")
+	if err := validateAccountCredentials(a.Account, a.Key); err != nil {
+		return err
 	}
 	client, err := as.NewBasicClient(a.Account, a.Key)
 	if err != nil {
@@ -58,13 +57,22 @@ func (a *StorageAttributes) NewStorageClient() error {
 	return nil
 }
 
-func FileIsTooBig(name string) (bool, error) {
-	info, err := os.Stat(name)
-	if err != nil {
-		return false, err
+func validateBlobName(container string, name string) error {
+	switch {
+	case container == "":
+		return errors.New("no container provided")
+	case name == "":
+		return errors.New("no blob name provided")
 	}
-	if info.Size() > (maxblobbockcount * as.MaxBlobBlockSize) {
-		return true, nil
+	return nil
+}
+
+func validateAccountCredentials(account string, key string) error {
+	switch {
+	case account == "":
+		return errors.New("no Storage Account provided")
+	case key == "":
+		return errors.New("no Azure Storage Access Key provided")
 	}
-	return false, nil
+	return nil
 }
