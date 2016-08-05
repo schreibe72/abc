@@ -7,7 +7,6 @@ import (
 	"log"
 	"mime"
 	"os"
-	"os/user"
 	"path/filepath"
 	"strings"
 
@@ -152,12 +151,13 @@ func printCmds() {
 }
 func parseFlags(cmd string, args []string) (Arguments, error) {
 	var a Arguments
-	u, err := user.Current()
+	/* u, err := user.Current()
 	if err != nil {
 		return a, err
 	}
-	home := u.HomeDir
-	//home := os.Getenv("HOME")
+	home := u.HomeDir */
+	needFlags := true
+	home := os.Getenv("HOME")
 	a.configPath = fmt.Sprintf("%s/.azure/abc-config.json", home)
 	subflags := flag.NewFlagSet("subcommand", flag.ExitOnError)
 
@@ -189,6 +189,7 @@ func parseFlags(cmd string, args []string) (Arguments, error) {
 		subflags.StringVar(&a.container, "c", "", "a Azure Container (required)")
 		subflags.StringVar(&a.blobPrefix, "bp", "", "a Azure Blob Prefix")
 	case "container_list":
+		needFlags = false
 		subflags.StringVar(&a.containerPrefix, "cp", "", "a Azure Container Prefix")
 	case "blob_delete":
 		subflags.StringVar(&a.container, "c", "", "a Azure Container (required)")
@@ -200,10 +201,10 @@ func parseFlags(cmd string, args []string) (Arguments, error) {
 	}
 	a.load()
 	subflags.Parse(args)
-	if len(subflags.Args()) > 0 || len(args) == 0 {
+	if (len(subflags.Args()) > 0 || len(args) == 0) && needFlags {
 		subflags.PrintDefaults()
 		os.Exit(2)
-		//return a, errors.New("No valid Flags")
+		return a, errors.New("No valid Flags")
 	}
 	return a, nil
 }
@@ -234,7 +235,7 @@ func main() {
 	if err != nil {
 		printCmds()
 		fmt.Println("")
-		fmt.Printf("%q is not valid command.\n", strings.Replace(cmd, "_", " ", 1))
+		fmt.Printf("%q : Parse error %s.\n", strings.Replace(cmd, "_", " ", 1), err.Error())
 		os.Exit(2)
 	}
 
