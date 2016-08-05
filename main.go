@@ -68,7 +68,7 @@ func upload(a Arguments) {
 		if a.verbose {
 			loggerPtr.Printf("Upload %s as ContentType %s\n", a.blobname, a.contentSetting.ContentType)
 		}
-		a.big, err = storage.FileIsTooBig(a.filename)
+		a.big, err = FileIsTooBig(a.filename)
 		check(err)
 		if a.verbose {
 			loggerPtr.Printf("Filename: %s\n", a.filename)

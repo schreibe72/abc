@@ -3,13 +3,15 @@ package storage
 import (
 	"errors"
 	"log"
-	"os"
 
 	as "github.com/schreibe72/azure-sdk-for-go/storage"
 )
 
+//MaxBlobBlockSize
+//
 const (
-	maxblobbockcount = 50000
+	MaxBlobBockCount = 50000
+	MaxBlobBlockSize = as.MaxBlobBlockSize
 )
 
 type ContentSetting as.ContentSetting
@@ -56,15 +58,4 @@ func (a *StorageAttributes) NewStorageClient() error {
 	a.storageClient = client
 	a.blobService = a.storageClient.GetBlobService()
 	return nil
-}
-
-func FileIsTooBig(name string) (bool, error) {
-	info, err := os.Stat(name)
-	if err != nil {
-		return false, err
-	}
-	if info.Size() > (maxblobbockcount * as.MaxBlobBlockSize) {
-		return true, nil
-	}
-	return false, nil
 }
