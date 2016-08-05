@@ -13,7 +13,7 @@ import (
 	as "github.com/schreibe72/azure-sdk-for-go/storage"
 )
 
-func (a *StorageAttributes) SaveBlob(reader io.Reader, container string, name string, contentSetting ContentSetting) (bundleItem, error) {
+func (a *StorageAttributes) saveBlob(reader io.Reader, container string, name string, contentSetting ContentSetting) (bundleItem, error) {
 
 	switch {
 	case container == "":
@@ -68,7 +68,7 @@ func (a *StorageAttributes) SaveBlob(reader io.Reader, container string, name st
 			Status: status}
 		blocklist = append(blocklist, block)
 		c <- u
-		if item.EOF || len(blocklist) >= maxblobbockcount {
+		if item.EOF || len(blocklist) >= MaxBlobBockCount {
 			break
 		}
 	}
@@ -115,7 +115,7 @@ func (a *StorageAttributes) SaveBigBlob(reader io.Reader, container string, name
 		if a.Verbose {
 			a.Logger.Printf("Save Blob in new BlobFile: %s\n", blobname)
 		}
-		item, err = a.SaveBlob(reader, container, blobname, contentSetting)
+		item, err = a.saveBlob(reader, container, blobname, contentSetting)
 		if err != nil {
 			return err
 		}

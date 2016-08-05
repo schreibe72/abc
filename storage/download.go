@@ -27,6 +27,7 @@ func (a *StorageAttributes) loadBlob(w io.Writer, container string, name string)
 	return err
 }
 
+// LoadBlob downloads the blob. It desides wether this is a bundle with spilt files or not.
 func (a *StorageAttributes) LoadBlob(w io.Writer, container string, name string) error {
 	switch {
 	case container == "":
