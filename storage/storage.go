@@ -4,7 +4,7 @@ import (
 	"errors"
 	"log"
 
-	as "github.com/schreibe72/azure-sdk-for-go/storage"
+	as "github.com/Azure/azure-sdk-for-go/storage"
 )
 
 //MaxBlobBlockSize
@@ -14,7 +14,7 @@ const (
 	MaxBlobBlockSize = as.MaxBlobBlockSize
 )
 
-type ContentSetting as.ContentSetting
+type ContentSetting as.BlobHeaders
 
 type StorageAttributes struct {
 	Key           string
@@ -44,17 +44,21 @@ type bundle struct {
 	ContentType string
 }
 
-func (a *StorageAttributes) NewStorageClient() error {
-	if err := validateAccountCredentials(a.Account, a.Key); err != nil {
-		return err
+func NewStorageClient(key string, account string, worker int) (StorageAttributes, error) {
+	s := StorageAttributes{Key: key,
+		Account:     account,
+		WorkerCount: worker,
 	}
-	client, err := as.NewBasicClient(a.Account, a.Key)
+	if err := validateAccountCredentials(s.Account, s.Key); err != nil {
+		return StorageAttributes{}, err
+	}
+	client, err := as.NewBasicClient(s.Account, s.Key)
 	if err != nil {
-		return err
+		return StorageAttributes{}, err
 	}
-	a.storageClient = client
-	a.blobService = a.storageClient.GetBlobService()
-	return nil
+	s.storageClient = client
+	s.blobService = s.storageClient.GetBlobService()
+	return s, nil
 }
 
 func validateBlobName(container string, name string) error {

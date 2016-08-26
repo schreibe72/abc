@@ -3,7 +3,7 @@ package storage
 import (
 	"errors"
 
-	as "github.com/schreibe72/azure-sdk-for-go/storage"
+	as "github.com/Azure/azure-sdk-for-go/storage"
 )
 
 //ListContainer shows all container in storage account
