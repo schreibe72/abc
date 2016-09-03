@@ -250,6 +250,13 @@ On Mac OS X there is an  *_get_comp_words_by_ref command not found* error. This 
 brew install bash-completion
 ```
 
+bash completion works only with bash version 4. If there is an *flaghash["${flagname}"]: bad array subscript* error you need to Install
+bash version 4. For mac:
+```
+brew install bash
+```
+You also have to configure your terminal programm to use this shell.
+
 -----
 # License
 
