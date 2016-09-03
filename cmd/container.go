@@ -12,17 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package cmd
 
-import "github.com/schreibe72/abc/cmd"
+import (
+	"errors"
 
-var (
-	version string
-	githash string
+	"github.com/spf13/cobra"
 )
 
-func main() {
-	cmd.Version = version
-	cmd.Githash = githash
-	cmd.Execute()
+// containerCmd represents the container command
+var containerCmd = &cobra.Command{
+	Use:   "container",
+	Short: "All container manipulating commands",
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		if key == "" {
+			return errors.New("Key should not be empty!")
+		}
+		if account == "" {
+			return errors.New("Account shoud not be empty!")
+		}
+		return nil
+	},
+}
+
+func init() {
+	RootCmd.AddCommand(containerCmd)
+
 }

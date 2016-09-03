@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	as "github.com/schreibe72/azure-sdk-for-go/storage"
+	as "github.com/Azure/azure-sdk-for-go/storage"
 )
 
 func (a *StorageAttributes) saveBlob(reader io.Reader, container string, name string, contentSetting ContentSetting) (bundleItem, error) {
@@ -78,7 +78,7 @@ func (a *StorageAttributes) saveBlob(reader io.Reader, container string, name st
 		return item, err
 	}
 	b64hash := base64.StdEncoding.EncodeToString(hash.Sum(nil))
-	cs := as.ContentSetting(contentSetting)
+	cs := as.BlobHeaders(contentSetting)
 	cs.ContentMD5 = b64hash
 
 	item.BlobMD5 = fmt.Sprintf("%x", hash.Sum(nil))
@@ -154,7 +154,7 @@ func (a *StorageAttributes) storeBundleFile(container string, name string, b bun
 	if err != nil {
 		return err
 	}
-	var cs as.ContentSetting
+	var cs as.BlobHeaders
 	cs.ContentMD5 = base64.StdEncoding.EncodeToString(hash.Sum(nil))
 	cs.ContentType = "application/json"
 	err = a.blobService.SetBlobProperties(container, name, cs)
